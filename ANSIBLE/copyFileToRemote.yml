@@ -1,0 +1,11 @@
+- name: Ansible Copy Example Local to Remote
+  hosts: awsec2instances
+  tasks:
+    - name: copying file with playbook
+      become: true 
+      copy:
+        src: /Users/lyerva/Documents/DEVOPS/ANSIBLE/test-playbook.yml
+        dest: /home/ubuntu/LYERVA
+        owner: root
+        group: root        
+        mode: 700

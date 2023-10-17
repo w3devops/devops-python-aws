@@ -1,0 +1,68 @@
+---
+- hosts: localhost
+  become: true
+  vars:
+    container_count: 2
+    default_container_name: docker
+    default_container_image: ubuntu
+    default_container_command: sleep 1d
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+    - name: Pull default Docker image
+      community.docker.docker_image:
+        name: "{{ default_container_image }}"
+        source: pull
+    - name: Creates directory
+      file:
+        path: /home/ubuntu/LYERVA/jenkins_data
+        state: directory
+        mode: 777
+    - name: Pull Jenkins Docker image
+      docker_image:
+        name: jenkins/jenkins:lts
+        source: pull
+        state: present
+ 
+    - name: Create Jenkins Docker container
+      docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts
+        state: started
+        ports:
+          - 8080:8080
+          - 50000:50000
+        volumes:
+          - jenkins_data:/var/jenkins_home
+
